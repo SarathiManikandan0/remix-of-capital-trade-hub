@@ -1,10 +1,10 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { TrendingUp, TrendingDown, Minus, Lock, Eye, BarChart2, Bookmark } from 'lucide-react';
+import { TrendingUp, TrendingDown, Minus, Lock, Eye, BarChart2 } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { marketAnalyses, currentUser } from '@/data/mockData';
 import { cn } from '@/lib/utils';
 import { formatDistanceToNow } from 'date-fns';
@@ -18,15 +18,14 @@ const sentimentConfig = {
 };
 
 export default function MarketAnalysis() {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('all');
-  const [searchQuery, setSearchQuery] = useState('');
 
   const userTierLevel = tierOrder[currentUser.tier];
 
-  const filteredAnalyses = marketAnalyses.filter(analysis => {
-    if (searchQuery && !analysis.title.toLowerCase().includes(searchQuery.toLowerCase())) return false;
-    return true;
-  });
+  const handleUpgradeClick = () => {
+    navigate('/subscription#plans');
+  };
 
   return (
     <div className="space-y-6">
@@ -47,33 +46,24 @@ export default function MarketAnalysis() {
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <TabsList className="bg-secondary/50 border border-border p-1">
-            <TabsTrigger value="all" className="data-[state=active]:gradient-primary data-[state=active]:text-primary-foreground">
-              All Markets
-            </TabsTrigger>
-            <TabsTrigger value="crypto" className="data-[state=active]:gradient-primary data-[state=active]:text-primary-foreground">
-              Crypto
-            </TabsTrigger>
-            <TabsTrigger value="forex" className="data-[state=active]:gradient-primary data-[state=active]:text-primary-foreground">
-              Forex
-            </TabsTrigger>
-            <TabsTrigger value="stocks" className="data-[state=active]:gradient-primary data-[state=active]:text-primary-foreground">
-              Stocks
-            </TabsTrigger>
-          </TabsList>
-
-          <Input
-            placeholder="Search analysis..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="max-w-xs bg-secondary/50 border-border"
-          />
-        </div>
+        <TabsList className="bg-secondary/50 border border-border p-1">
+          <TabsTrigger value="all" className="data-[state=active]:gradient-primary data-[state=active]:text-primary-foreground">
+            All Markets
+          </TabsTrigger>
+          <TabsTrigger value="crypto" className="data-[state=active]:gradient-primary data-[state=active]:text-primary-foreground">
+            Crypto
+          </TabsTrigger>
+          <TabsTrigger value="forex" className="data-[state=active]:gradient-primary data-[state=active]:text-primary-foreground">
+            Forex
+          </TabsTrigger>
+          <TabsTrigger value="stocks" className="data-[state=active]:gradient-primary data-[state=active]:text-primary-foreground">
+            Stocks
+          </TabsTrigger>
+        </TabsList>
 
         <TabsContent value={activeTab} className="mt-6">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredAnalyses.map((analysis, index) => {
+            {marketAnalyses.map((analysis, index) => {
               const isLocked = tierOrder[analysis.tier] > userTierLevel;
               const sentiment = sentimentConfig[analysis.sentiment];
               const SentimentIcon = sentiment.icon;
@@ -136,7 +126,7 @@ export default function MarketAnalysis() {
                       <p className="text-sm text-muted-foreground font-medium mb-3">
                         {analysis.tier.toUpperCase()} Content
                       </p>
-                      <Button size="sm" className="gradient-primary text-primary-foreground">
+                      <Button size="sm" className="gradient-primary text-primary-foreground" onClick={handleUpgradeClick}>
                         Upgrade to Unlock
                       </Button>
                     </div>

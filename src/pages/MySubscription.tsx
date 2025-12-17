@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { CreditCard, Shield, Clock, Star, RefreshCw } from 'lucide-react';
 import { PricingCard } from '@/components/subscription/PricingCard';
@@ -11,9 +12,19 @@ import { format, differenceInDays } from 'date-fns';
 import { cn } from '@/lib/utils';
 
 export default function MySubscription() {
+  const location = useLocation();
+  const plansRef = useRef<HTMLDivElement>(null);
   const [isYearly, setIsYearly] = useState(false);
   const currentPlan = plans.find(p => p.id === currentUser.tier);
   const daysUntilExpiry = differenceInDays(new Date(currentUser.subscriptionExpiry), new Date());
+
+  useEffect(() => {
+    if (location.hash === '#plans' && plansRef.current) {
+      setTimeout(() => {
+        plansRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 100);
+    }
+  }, [location.hash]);
 
   return (
     <div className="space-y-8">
@@ -117,7 +128,7 @@ export default function MySubscription() {
       </motion.div>
 
       {/* Pricing Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div ref={plansRef} id="plans" className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {plans.map((plan, index) => (
           <PricingCard key={plan.id} plan={plan} isYearly={isYearly} index={index} />
         ))}

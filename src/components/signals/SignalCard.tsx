@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import { TrendingUp, TrendingDown, Lock } from 'lucide-react';
 import { Signal } from '@/types';
 import { currentUser } from '@/data/mockData';
@@ -26,9 +27,14 @@ const statusColors = {
 };
 
 export function SignalCard({ signal, index = 0 }: SignalCardProps) {
+  const navigate = useNavigate();
   const userTierLevel = tierOrder[currentUser.tier];
   const signalTierLevel = tierOrder[signal.tier];
   const isLocked = signalTierLevel > userTierLevel;
+
+  const handleUpgradeClick = () => {
+    navigate('/subscription#plans');
+  };
 
   const formatPrice = (price: number) => {
     if (price < 10) return price.toFixed(4);
@@ -57,7 +63,7 @@ export function SignalCard({ signal, index = 0 }: SignalCardProps) {
           <p className="text-sm text-muted-foreground font-medium">
             {signal.tier.toUpperCase()} Signal
           </p>
-          <Button size="sm" className="mt-3 gradient-primary text-primary-foreground">
+          <Button size="sm" className="mt-3 gradient-primary text-primary-foreground" onClick={handleUpgradeClick}>
             Upgrade to Unlock
           </Button>
         </div>
