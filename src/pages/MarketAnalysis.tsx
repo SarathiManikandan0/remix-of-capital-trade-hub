@@ -17,6 +17,25 @@ const sentimentConfig = {
   neutral: { icon: Minus, color: 'text-muted-foreground', bg: 'bg-muted' },
 };
 
+// Asset categorization helpers
+const cryptoAssets = ['BTC', 'ETH', 'SOL', 'XRP', 'ADA', 'DOT', 'DOGE', 'AVAX', 'LINK', 'MATIC'];
+const isCrypto = (asset: string) => cryptoAssets.some(c => asset.toUpperCase().includes(c));
+const isForex = (asset: string) => asset.includes('/') && !isCrypto(asset);
+const isStock = (asset: string) => !isCrypto(asset) && !isForex(asset);
+
+const filterAnalysesByTab = (analyses: typeof marketAnalyses, tab: string) => {
+  switch (tab) {
+    case 'crypto':
+      return analyses.filter(a => isCrypto(a.asset));
+    case 'forex':
+      return analyses.filter(a => isForex(a.asset));
+    case 'stocks':
+      return analyses.filter(a => isStock(a.asset));
+    default:
+      return analyses;
+  }
+};
+
 export default function MarketAnalysis() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('all');
@@ -63,7 +82,7 @@ export default function MarketAnalysis() {
 
         <TabsContent value={activeTab} className="mt-6">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {marketAnalyses.map((analysis, index) => {
+            {filterAnalysesByTab(marketAnalyses, activeTab).map((analysis, index) => {
               const isLocked = tierOrder[analysis.tier] > userTierLevel;
               const sentiment = sentimentConfig[analysis.sentiment];
               const SentimentIcon = sentiment.icon;
