@@ -1,3 +1,4 @@
+import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { BookOpen, Download, Award, Lock, Play, Clock, Layers } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -37,7 +38,12 @@ const tools = [
 ];
 
 export default function ToolsCourses() {
+  const navigate = useNavigate();
   const userTierLevel = tierOrder[currentUser.tier];
+
+  const handleUpgradeClick = () => {
+    navigate('/subscription#plans');
+  };
 
   return (
     <div className="space-y-6">
@@ -130,7 +136,7 @@ export default function ToolsCourses() {
                     )}
 
                     {isLocked ? (
-                      <Button className="w-full" variant="outline" disabled>
+                      <Button className="w-full" variant="outline" onClick={handleUpgradeClick}>
                         <Lock className="h-4 w-4 mr-2" />
                         Upgrade to Access
                       </Button>
@@ -194,7 +200,7 @@ export default function ToolsCourses() {
                   </div>
 
                   {isLocked ? (
-                    <Button className="w-full" variant="outline" disabled>
+                    <Button className="w-full" variant="outline" onClick={handleUpgradeClick}>
                       <Lock className="h-4 w-4 mr-2" />
                       Upgrade to Download
                     </Button>

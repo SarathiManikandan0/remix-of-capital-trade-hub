@@ -1,8 +1,7 @@
 import { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Bell, Search, Calendar } from 'lucide-react';
+import { Bell, Calendar } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -26,7 +25,6 @@ const pageTitle: Record<string, string> = {
 export function TopBar() {
   const location = useLocation();
   const navigate = useNavigate();
-  const [searchQuery, setSearchQuery] = useState('');
   const [open, setOpen] = useState(false);
   const [notificationList, setNotificationList] = useState<Notification[]>(initialNotifications);
   
@@ -54,17 +52,6 @@ export function TopBar() {
 
       {/* Right Side */}
       <div className="flex items-center gap-4">
-        {/* Search */}
-        <div className="relative hidden md:block">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            type="search"
-            placeholder="Search..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-64 pl-9 bg-secondary/50 border-border focus:border-primary"
-          />
-        </div>
 
         {/* Date */}
         <div className="hidden lg:flex items-center gap-2 px-3 py-1.5 bg-secondary/50 rounded-lg border border-border">
