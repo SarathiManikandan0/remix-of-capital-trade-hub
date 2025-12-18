@@ -89,7 +89,15 @@ export function TicketCard({ ticket, onClick, index = 0 }: TicketCardProps) {
           <MessageCircle className="h-4 w-4" />
           <span className="text-xs">{ticket.messages.length} messages</span>
         </div>
-        <Button variant="ghost" size="sm" className="text-primary">
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          className="text-primary"
+          onClick={(e) => {
+            e.stopPropagation();
+            onClick?.();
+          }}
+        >
           View Thread
         </Button>
       </div>

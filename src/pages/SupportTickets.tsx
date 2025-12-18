@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Headphones, Plus, Clock, CheckCircle, AlertCircle, MessageCircle } from 'lucide-react';
 import { TicketCard } from '@/components/support/TicketCard';
+import { TicketThreadModal } from '@/components/support/TicketThreadModal';
 import { StatCard } from '@/components/dashboard/StatCard';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -13,9 +14,42 @@ import { tickets as initialTickets } from '@/data/mockData';
 import { Ticket } from '@/types';
 import { toast } from 'sonner';
 
+type TicketType = 'support' | 'payment' | 'subscription';
+
+const typeConfig: Record<TicketType, { label: string; order: number }> = {
+  support: { label: 'General Support', order: 1 },
+  payment: { label: 'Payment Issue', order: 2 },
+  subscription: { label: 'Subscription Issue', order: 3 },
+};
+
+function groupTicketsByType(tickets: Ticket[]): Record<TicketType, Ticket[]> {
+  const grouped: Record<TicketType, Ticket[]> = {
+    support: [],
+    payment: [],
+    subscription: [],
+  };
+
+  tickets.forEach(ticket => {
+    grouped[ticket.type].push(ticket);
+  });
+
+  // Sort each group: open first, then resolved
+  Object.keys(grouped).forEach(type => {
+    grouped[type as TicketType].sort((a, b) => {
+      if (a.status === 'resolved' && b.status !== 'resolved') return 1;
+      if (a.status !== 'resolved' && b.status === 'resolved') return -1;
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    });
+  });
+
+  return grouped;
+}
+
 export default function SupportTickets() {
   const [isOpen, setIsOpen] = useState(false);
   const [ticketsList, setTicketsList] = useState<Ticket[]>(initialTickets);
+  const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
+  const [isThreadOpen, setIsThreadOpen] = useState(false);
   
   // Form state
   const [ticketType, setTicketType] = useState('');
@@ -25,8 +59,9 @@ export default function SupportTickets() {
   // Validation errors
   const [errors, setErrors] = useState<{ type?: string; subject?: string; message?: string }>({});
 
-  const openTickets = ticketsList.filter(t => t.status === 'open');
+  const openTickets = ticketsList.filter(t => t.status === 'open' || t.status === 'in-progress');
   const resolvedTickets = ticketsList.filter(t => t.status === 'resolved');
+  const groupedTickets = groupTicketsByType(ticketsList);
 
   const resetForm = () => {
     setTicketType('');
@@ -71,7 +106,7 @@ export default function SupportTickets() {
     const newTicket: Ticket = {
       id: generateTicketId(),
       subject: subject.trim(),
-      type: ticketType as 'support' | 'payment' | 'subscription',
+      type: ticketType as TicketType,
       status: 'open',
       priority: 'medium',
       createdAt: new Date().toISOString(),
@@ -100,6 +135,55 @@ export default function SupportTickets() {
       resetForm();
     }
   };
+
+  const handleViewThread = (ticket: Ticket) => {
+    setSelectedTicket(ticket);
+    setIsThreadOpen(true);
+  };
+
+  const handleCloseThread = () => {
+    setIsThreadOpen(false);
+    setSelectedTicket(null);
+  };
+
+  const handleSendReply = (ticketId: string, messageContent: string) => {
+    const newMessage = {
+      id: `msg-${Date.now()}`,
+      content: messageContent,
+      sender: 'user' as const,
+      createdAt: new Date().toISOString(),
+    };
+
+    setTicketsList(prev => prev.map(ticket => {
+      if (ticket.id === ticketId) {
+        return {
+          ...ticket,
+          messages: [...ticket.messages, newMessage],
+          updatedAt: new Date().toISOString(),
+        };
+      }
+      return ticket;
+    }));
+
+    // Update selected ticket for immediate UI update
+    setSelectedTicket(prev => {
+      if (prev && prev.id === ticketId) {
+        return {
+          ...prev,
+          messages: [...prev.messages, newMessage],
+          updatedAt: new Date().toISOString(),
+        };
+      }
+      return prev;
+    });
+
+    toast.success('Reply sent successfully!');
+  };
+
+  const hasTickets = ticketsList.length > 0;
+  const typesWithTickets = (Object.keys(typeConfig) as TicketType[])
+    .filter(type => groupedTickets[type].length > 0)
+    .sort((a, b) => typeConfig[a].order - typeConfig[b].order);
 
   return (
     <div className="space-y-6">
@@ -207,14 +291,19 @@ export default function SupportTickets() {
         />
       </div>
 
-      {/* Tickets List */}
-      <div className="space-y-4">
+      {/* Tickets List with Issue Type Segregation */}
+      <div className="space-y-6">
         <h2 className="font-display text-lg font-semibold text-foreground">Your Tickets</h2>
 
-        {ticketsList.length > 0 ? (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            {ticketsList.map((ticket, index) => (
-              <TicketCard key={ticket.id} ticket={ticket} index={index} />
+        {hasTickets ? (
+          <div className="space-y-8">
+            {typesWithTickets.map((type) => (
+              <TicketSection
+                key={type}
+                title={typeConfig[type].label}
+                tickets={groupedTickets[type]}
+                onViewThread={handleViewThread}
+              />
             ))}
           </div>
         ) : (
@@ -257,6 +346,50 @@ export default function SupportTickets() {
           </Button>
         </div>
       </motion.div>
+
+      {/* Thread Modal */}
+      <TicketThreadModal
+        ticket={selectedTicket}
+        isOpen={isThreadOpen}
+        onClose={handleCloseThread}
+        onSendReply={handleSendReply}
+      />
     </div>
+  );
+}
+
+interface TicketSectionProps {
+  title: string;
+  tickets: Ticket[];
+  onViewThread: (ticket: Ticket) => void;
+}
+
+function TicketSection({ title, tickets, onViewThread }: TicketSectionProps) {
+  if (tickets.length === 0) return null;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="space-y-4"
+    >
+      <div className="flex items-center gap-3">
+        <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
+          {title}
+        </h3>
+        <div className="flex-1 h-px bg-border" />
+        <span className="text-xs text-muted-foreground">{tickets.length} ticket{tickets.length !== 1 ? 's' : ''}</span>
+      </div>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        {tickets.map((ticket, index) => (
+          <TicketCard 
+            key={ticket.id} 
+            ticket={ticket} 
+            index={index}
+            onClick={() => onViewThread(ticket)}
+          />
+        ))}
+      </div>
+    </motion.div>
   );
 }
