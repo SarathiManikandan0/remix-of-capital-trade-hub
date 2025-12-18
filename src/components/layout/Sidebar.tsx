@@ -14,6 +14,7 @@ import {
   ChevronLeft,
   LogOut,
   Crown,
+  Users,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { currentUser } from '@/data/mockData';
@@ -29,6 +30,7 @@ const navItems = [
   { path: '/support', label: 'Support & Tickets', icon: Headphones },
   { path: '/payments', label: 'Payments & History', icon: Receipt },
   { path: '/notifications', label: 'Notifications', icon: Bell },
+  { path: '/community', label: 'Community', icon: Users },
   { path: '/settings', label: 'Profile & Settings', icon: Settings },
 ];
 
