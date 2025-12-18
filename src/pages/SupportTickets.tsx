@@ -9,14 +9,97 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { tickets } from '@/data/mockData';
+import { tickets as initialTickets } from '@/data/mockData';
+import { Ticket } from '@/types';
+import { toast } from 'sonner';
 
 export default function SupportTickets() {
   const [isOpen, setIsOpen] = useState(false);
+  const [ticketsList, setTicketsList] = useState<Ticket[]>(initialTickets);
+  
+  // Form state
   const [ticketType, setTicketType] = useState('');
+  const [subject, setSubject] = useState('');
+  const [message, setMessage] = useState('');
+  
+  // Validation errors
+  const [errors, setErrors] = useState<{ type?: string; subject?: string; message?: string }>({});
 
-  const openTickets = tickets.filter(t => t.status === 'open');
-  const resolvedTickets = tickets.filter(t => t.status === 'resolved');
+  const openTickets = ticketsList.filter(t => t.status === 'open');
+  const resolvedTickets = ticketsList.filter(t => t.status === 'resolved');
+
+  const resetForm = () => {
+    setTicketType('');
+    setSubject('');
+    setMessage('');
+    setErrors({});
+  };
+
+  const validateForm = () => {
+    const newErrors: { type?: string; subject?: string; message?: string } = {};
+    
+    if (!ticketType) {
+      newErrors.type = 'Please select an issue type';
+    }
+    if (!subject.trim()) {
+      newErrors.subject = 'Subject is required';
+    }
+    if (!message.trim()) {
+      newErrors.message = 'Message is required';
+    }
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const generateTicketId = () => {
+    const existingIds = ticketsList.map(t => {
+      const num = parseInt(t.id.replace('TKT-', ''));
+      return isNaN(num) ? 0 : num;
+    });
+    const maxId = Math.max(...existingIds, 0);
+    return `TKT-${String(maxId + 1).padStart(3, '0')}`;
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!validateForm()) {
+      return;
+    }
+
+    const newTicket: Ticket = {
+      id: generateTicketId(),
+      subject: subject.trim(),
+      type: ticketType as 'support' | 'payment' | 'subscription',
+      status: 'open',
+      priority: 'medium',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      messages: [
+        {
+          id: '1',
+          content: message.trim(),
+          sender: 'user',
+          createdAt: new Date().toISOString(),
+        },
+      ],
+    };
+
+    setTicketsList(prev => [newTicket, ...prev]);
+    setIsOpen(false);
+    resetForm();
+    toast.success('Ticket created successfully!', {
+      description: `Ticket ${newTicket.id} has been submitted.`,
+    });
+  };
+
+  const handleModalClose = (open: boolean) => {
+    setIsOpen(open);
+    if (!open) {
+      resetForm();
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -34,7 +117,7 @@ export default function SupportTickets() {
           <p className="text-muted-foreground mt-1">Get help from our support team</p>
         </div>
 
-        <Dialog open={isOpen} onOpenChange={setIsOpen}>
+        <Dialog open={isOpen} onOpenChange={handleModalClose}>
           <DialogTrigger asChild>
             <Button className="gradient-primary text-primary-foreground">
               <Plus className="h-4 w-4 mr-2" />
@@ -45,11 +128,11 @@ export default function SupportTickets() {
             <DialogHeader>
               <DialogTitle className="font-display">Create New Ticket</DialogTitle>
             </DialogHeader>
-            <form className="space-y-4 mt-4">
+            <form className="space-y-4 mt-4" onSubmit={handleSubmit}>
               <div className="space-y-2">
                 <Label>Issue Type</Label>
                 <Select value={ticketType} onValueChange={setTicketType}>
-                  <SelectTrigger className="bg-secondary/50 border-border">
+                  <SelectTrigger className={`bg-secondary/50 border-border ${errors.type ? 'border-destructive' : ''}`}>
                     <SelectValue placeholder="Select issue type" />
                   </SelectTrigger>
                   <SelectContent>
@@ -58,19 +141,29 @@ export default function SupportTickets() {
                     <SelectItem value="subscription">Subscription Issue</SelectItem>
                   </SelectContent>
                 </Select>
+                {errors.type && <p className="text-sm text-destructive">{errors.type}</p>}
               </div>
 
               <div className="space-y-2">
                 <Label>Subject</Label>
-                <Input placeholder="Brief description of your issue" className="bg-secondary/50 border-border" />
+                <Input 
+                  placeholder="Brief description of your issue" 
+                  className={`bg-secondary/50 border-border ${errors.subject ? 'border-destructive' : ''}`}
+                  value={subject}
+                  onChange={(e) => setSubject(e.target.value)}
+                />
+                {errors.subject && <p className="text-sm text-destructive">{errors.subject}</p>}
               </div>
 
               <div className="space-y-2">
                 <Label>Message</Label>
                 <Textarea
                   placeholder="Describe your issue in detail..."
-                  className="bg-secondary/50 border-border min-h-[120px]"
+                  className={`bg-secondary/50 border-border min-h-[120px] ${errors.message ? 'border-destructive' : ''}`}
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value)}
                 />
+                {errors.message && <p className="text-sm text-destructive">{errors.message}</p>}
               </div>
 
               <div className="space-y-2">
@@ -79,7 +172,7 @@ export default function SupportTickets() {
               </div>
 
               <div className="flex justify-end gap-3 pt-4">
-                <Button variant="outline" type="button" onClick={() => setIsOpen(false)}>
+                <Button variant="outline" type="button" onClick={() => handleModalClose(false)}>
                   Cancel
                 </Button>
                 <Button type="submit" className="gradient-primary text-primary-foreground">
@@ -118,9 +211,9 @@ export default function SupportTickets() {
       <div className="space-y-4">
         <h2 className="font-display text-lg font-semibold text-foreground">Your Tickets</h2>
 
-        {tickets.length > 0 ? (
+        {ticketsList.length > 0 ? (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            {tickets.map((ticket, index) => (
+            {ticketsList.map((ticket, index) => (
               <TicketCard key={ticket.id} ticket={ticket} index={index} />
             ))}
           </div>
