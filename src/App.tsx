@@ -12,6 +12,7 @@ import MySubscription from "./pages/MySubscription";
 import SupportTickets from "./pages/SupportTickets";
 import PaymentsHistory from "./pages/PaymentsHistory";
 import Notifications from "./pages/Notifications";
+import Community from "./pages/Community";
 import ProfileSettings from "./pages/ProfileSettings";
 import NotFound from "./pages/NotFound";
 
@@ -33,6 +34,7 @@ const App = () => (
             <Route path="/support" element={<SupportTickets />} />
             <Route path="/payments" element={<PaymentsHistory />} />
             <Route path="/notifications" element={<Notifications />} />
+            <Route path="/community" element={<Community />} />
             <Route path="/settings" element={<ProfileSettings />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
