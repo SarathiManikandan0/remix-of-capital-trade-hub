@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { NavLink, useLocation } from 'react-router-dom';
+import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   LayoutDashboard,
@@ -37,11 +37,16 @@ const navItems = [
 export function Sidebar() {
   const [collapsed, setCollapsed] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
 
   const tierColors = {
     student: 'text-primary',
     beginner: 'text-accent',
     elite: 'text-amber-400',
+  };
+
+  const handleAvatarClick = () => {
+    navigate('/settings');
   };
 
   return (
@@ -83,11 +88,18 @@ export function Sidebar() {
       {/* User Profile */}
       <div className={cn("p-4 border-b border-sidebar-border", collapsed && "px-2")}>
         <div className={cn("flex items-center gap-3", collapsed && "justify-center")}>
-          <Avatar className="h-10 w-10 border-2 border-primary/30">
-            <AvatarFallback className="bg-secondary text-foreground font-semibold">
-              {currentUser.name.split(' ').map(n => n[0]).join('')}
-            </AvatarFallback>
-          </Avatar>
+          <motion.div
+            onClick={handleAvatarClick}
+            whileHover={{ scale: 1.05 }}
+            className="cursor-pointer relative group"
+          >
+            <div className="absolute inset-0 rounded-full bg-primary/20 blur-md opacity-60 group-hover:opacity-100 group-hover:bg-primary/30 transition-all duration-300" />
+            <Avatar className="relative h-10 w-10 border-2 border-primary/50 group-hover:border-primary transition-all duration-300 ring-2 ring-primary/20 group-hover:ring-primary/40 ring-offset-2 ring-offset-sidebar">
+              <AvatarFallback className="bg-secondary text-foreground font-semibold">
+                {currentUser.name.split(' ').map(n => n[0]).join('')}
+              </AvatarFallback>
+            </Avatar>
+          </motion.div>
           <AnimatePresence mode="wait">
             {!collapsed && (
               <motion.div

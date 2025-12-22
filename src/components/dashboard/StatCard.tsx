@@ -1,4 +1,5 @@
 import { ReactNode } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
@@ -13,6 +14,7 @@ interface StatCardProps {
   };
   variant?: 'default' | 'primary' | 'accent' | 'success' | 'warning';
   className?: string;
+  to?: string;
 }
 
 const variantStyles = {
@@ -39,16 +41,27 @@ export function StatCard({
   trend,
   variant = 'default',
   className,
+  to,
 }: StatCardProps) {
+  const navigate = useNavigate();
+
+  const handleClick = () => {
+    if (to) {
+      navigate(to);
+    }
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      whileHover={{ y: -2 }}
+      whileHover={{ y: -4, boxShadow: to ? '0 0 20px hsl(var(--primary) / 0.15)' : undefined }}
       transition={{ duration: 0.3 }}
+      onClick={handleClick}
       className={cn(
-        "relative overflow-hidden rounded-xl border p-5",
+        "relative overflow-hidden rounded-xl border p-5 transition-all duration-300",
         variantStyles[variant],
+        to && "cursor-pointer hover:border-primary/40",
         className
       )}
     >

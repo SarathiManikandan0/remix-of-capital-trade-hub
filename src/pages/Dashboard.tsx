@@ -81,6 +81,7 @@ export default function Dashboard() {
           subtitle={`Renews: ${format(new Date(currentUser.subscriptionExpiry), 'MMM dd, yyyy')}`}
           icon={<CreditCard className="h-5 w-5" />}
           variant={daysUntilExpiry <= 7 ? 'warning' : 'success'}
+          to="/subscription"
         />
         <StatCard
           title="Signals Today"
@@ -89,6 +90,7 @@ export default function Dashboard() {
           icon={<Radio className="h-5 w-5" />}
           variant="primary"
           trend={{ value: 12, isPositive: true }}
+          to="/signals"
         />
         <StatCard
           title="Open Tickets"
@@ -96,6 +98,7 @@ export default function Dashboard() {
           subtitle="Avg response: 2hrs"
           icon={<Headphones className="h-5 w-5" />}
           variant={openTickets.length > 0 ? 'accent' : 'default'}
+          to="/support"
         />
         <StatCard
           title="Engagement"
