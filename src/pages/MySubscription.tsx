@@ -10,6 +10,7 @@ import { Label } from '@/components/ui/label';
 import { plans, currentUser } from '@/data/mockData';
 import { format, differenceInDays } from 'date-fns';
 import { cn } from '@/lib/utils';
+import { Snowfall } from '@/components/effects/Snowfall';
 
 export default function MySubscription() {
   const location = useLocation();
@@ -27,7 +28,9 @@ export default function MySubscription() {
   }, [location.hash]);
 
   return (
-    <div className="space-y-8">
+    <div className="relative space-y-8">
+      {/* Snowfall Background Effect */}
+      <Snowfall />
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
