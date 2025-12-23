@@ -1,17 +1,13 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Users, Plus, Megaphone, ThumbsUp, MessageCircle, Filter, MessageSquare, Radio } from 'lucide-react';
+import { Users, Megaphone, MessageSquare, Radio, Send, Hash } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { toast } from 'sonner';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
 import { currentUser } from '@/data/mockData';
 
@@ -22,18 +18,21 @@ interface Announcement {
   timestamp: string;
 }
 
-interface CommunityPost {
+interface ChatMessage {
   id: string;
+  roomId: string;
   userId: string;
   userName: string;
   userTier: 'free' | 'vip' | 'elite';
-  title: string;
-  category: string;
-  content: string;
+  message: string;
   timestamp: string;
-  likes: number;
-  comments: number;
-  liked: boolean;
+}
+
+interface ChatRoom {
+  id: string;
+  name: string;
+  icon: string;
+  onlineCount: number;
 }
 
 const initialAnnouncements: Announcement[] = [
@@ -57,61 +56,114 @@ const initialAnnouncements: Announcement[] = [
   },
 ];
 
-const initialPosts: CommunityPost[] = [
+const chatRooms: ChatRoom[] = [
+  { id: 'general', name: 'General', icon: '💬', onlineCount: 47 },
+  { id: 'forex', name: 'Forex Traders', icon: '💹', onlineCount: 23 },
+  { id: 'crypto', name: 'Crypto Traders', icon: '₿', onlineCount: 31 },
+  { id: 'stocks', name: 'Stock Traders', icon: '📈', onlineCount: 18 },
+  { id: 'elite', name: 'Elite Lounge', icon: '👑', onlineCount: 12 },
+];
+
+const initialMessages: ChatMessage[] = [
   {
-    id: 'post-1',
+    id: 'msg-1',
+    roomId: 'general',
     userId: 'u1',
     userName: 'Alex Morgan',
     userTier: 'elite',
-    title: 'My experience with the BTC/USDT signals',
-    category: 'signals',
-    content: 'Just wanted to share my results from following the BTC signals this week. The accuracy has been incredible! What strategies are you all using for risk management?',
-    timestamp: '30 minutes ago',
-    likes: 24,
-    comments: 8,
-    liked: false,
+    message: 'Good morning everyone! Markets are looking interesting today.',
+    timestamp: '9:15 AM',
   },
   {
-    id: 'post-2',
+    id: 'msg-2',
+    roomId: 'general',
     userId: 'u2',
     userName: 'Sarah Chen',
     userTier: 'vip',
-    title: 'Best practices for position sizing?',
-    category: 'strategies',
-    content: 'Looking for advice on position sizing. I currently use 2% risk per trade but wondering if others have different approaches based on signal confidence levels.',
-    timestamp: '2 hours ago',
-    likes: 15,
-    comments: 12,
-    liked: true,
+    message: 'Hey Alex! Yeah, I noticed the volatility picking up on EUR/USD.',
+    timestamp: '9:18 AM',
   },
   {
-    id: 'post-3',
+    id: 'msg-3',
+    roomId: 'general',
     userId: 'u3',
     userName: 'Mike Johnson',
     userTier: 'free',
-    title: 'New to trading - where to start?',
-    category: 'beginner',
-    content: 'Hi everyone! Just joined the platform and feeling a bit overwhelmed. Any recommendations for which courses to start with?',
-    timestamp: '5 hours ago',
-    likes: 32,
-    comments: 18,
-    liked: false,
+    message: 'Anyone else watching the BTC price action right now?',
+    timestamp: '9:22 AM',
   },
-];
-
-const categories = [
-  { value: 'all', label: 'All Posts' },
-  { value: 'strategies', label: 'Strategies' },
-  { value: 'signals', label: 'Signals Discussion' },
-  { value: 'beginner', label: 'Beginner Questions' },
-  { value: 'general', label: 'General' },
-];
-
-const postCategories = [
-  { value: 'general', label: 'General' },
-  { value: 'strategies', label: 'Strategy' },
-  { value: 'signals', label: 'Risk Management' },
-  { value: 'beginner', label: 'Psychology' },
+  {
+    id: 'msg-4',
+    roomId: 'general',
+    userId: 'u1',
+    userName: 'Alex Morgan',
+    userTier: 'elite',
+    message: 'The signals have been pretty accurate this week. Made some solid gains on the GBP/JPY trade.',
+    timestamp: '9:25 AM',
+  },
+  {
+    id: 'msg-5',
+    roomId: 'general',
+    userId: 'u4',
+    userName: 'Emma Wilson',
+    userTier: 'vip',
+    message: 'Welcome to the new members joining us today! Feel free to ask any questions.',
+    timestamp: '9:30 AM',
+  },
+  {
+    id: 'msg-6',
+    roomId: 'forex',
+    userId: 'u2',
+    userName: 'Sarah Chen',
+    userTier: 'vip',
+    message: 'The NFP data release is coming up. Everyone ready?',
+    timestamp: '9:45 AM',
+  },
+  {
+    id: 'msg-7',
+    roomId: 'forex',
+    userId: 'u5',
+    userName: 'David Lee',
+    userTier: 'elite',
+    message: 'I\'m positioned for a potential USD strength. What are your thoughts?',
+    timestamp: '9:48 AM',
+  },
+  {
+    id: 'msg-8',
+    roomId: 'crypto',
+    userId: 'u3',
+    userName: 'Mike Johnson',
+    userTier: 'free',
+    message: 'ETH looking bullish on the 4H chart. Breaking resistance soon?',
+    timestamp: '10:00 AM',
+  },
+  {
+    id: 'msg-9',
+    roomId: 'crypto',
+    userId: 'u6',
+    userName: 'Lisa Park',
+    userTier: 'elite',
+    message: 'Be careful with leverage in this market. Volatility is high.',
+    timestamp: '10:05 AM',
+  },
+  {
+    id: 'msg-10',
+    roomId: 'stocks',
+    userId: 'u7',
+    userName: 'James Brown',
+    userTier: 'vip',
+    message: 'Tech earnings coming up next week. Expecting some big moves.',
+    timestamp: '10:15 AM',
+  },
+  {
+    id: 'msg-11',
+    roomId: 'elite',
+    userId: 'u1',
+    userName: 'Alex Morgan',
+    userTier: 'elite',
+    message: 'Private strategy session at 3 PM UTC. Don\'t miss it!',
+    timestamp: '10:30 AM',
+  },
 ];
 
 const tierColors: Record<string, string> = {
@@ -122,37 +174,25 @@ const tierColors: Record<string, string> = {
 
 export default function Community() {
   const [activeTab, setActiveTab] = useState('community');
-  const [isOpen, setIsOpen] = useState(false);
-  const [posts, setPosts] = useState<CommunityPost[]>(initialPosts);
-  const [filter, setFilter] = useState('all');
-  
-  // Form state
-  const [postTitle, setPostTitle] = useState('');
-  const [postCategory, setPostCategory] = useState('');
-  const [postMessage, setPostMessage] = useState('');
-  const [errors, setErrors] = useState<{ title?: string; category?: string; message?: string }>({});
+  const [selectedRoom, setSelectedRoom] = useState('general');
+  const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
+  const [newMessage, setNewMessage] = useState('');
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const filteredPosts = filter === 'all' ? posts : posts.filter(p => p.category === filter);
+  const roomMessages = messages.filter(m => m.roomId === selectedRoom);
+  const currentRoom = chatRooms.find(r => r.id === selectedRoom);
 
-  const resetForm = () => {
-    setPostTitle('');
-    setPostCategory('');
-    setPostMessage('');
-    setErrors({});
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  const validateForm = () => {
-    const newErrors: { title?: string; category?: string; message?: string } = {};
-    if (!postTitle.trim()) newErrors.title = 'Title is required';
-    if (!postCategory) newErrors.category = 'Please select a category';
-    if (!postMessage.trim()) newErrors.message = 'Message is required';
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
+  useEffect(() => {
+    scrollToBottom();
+  }, [roomMessages]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!validateForm()) return;
+    if (!newMessage.trim()) return;
 
     const tierMap: Record<string, 'free' | 'vip' | 'elite'> = {
       student: 'free',
@@ -160,41 +200,18 @@ export default function Community() {
       elite: 'elite',
     };
 
-    const newPost: CommunityPost = {
-      id: `post-${Date.now()}`,
+    const message: ChatMessage = {
+      id: `msg-${Date.now()}`,
+      roomId: selectedRoom,
       userId: 'current',
       userName: currentUser.name,
       userTier: tierMap[currentUser.tier] || 'free',
-      title: postTitle.trim(),
-      category: postCategory,
-      content: postMessage.trim(),
-      timestamp: 'Just now',
-      likes: 0,
-      comments: 0,
-      liked: false,
+      message: newMessage.trim(),
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
     };
 
-    setPosts(prev => [newPost, ...prev]);
-    setIsOpen(false);
-    resetForm();
-    toast.success('Post created successfully!');
-  };
-
-  const handleLike = (postId: string) => {
-    setPosts(prev => prev.map(post => {
-      if (post.id === postId) {
-        return {
-          ...post,
-          liked: !post.liked,
-          likes: post.liked ? post.likes - 1 : post.likes + 1,
-        };
-      }
-      return post;
-    }));
-  };
-
-  const handleComment = (postId: string) => {
-    toast.info('Comments coming soon!');
+    setMessages(prev => [...prev, message]);
+    setNewMessage('');
   };
 
   return (
@@ -275,15 +292,13 @@ export default function Community() {
             <div className="space-y-4">
               {initialAnnouncements.map((ann) => (
                 <Card key={ann.id} className="bg-card border-border">
-                  <CardHeader className="pb-2">
-                    <div className="flex items-start justify-between gap-4">
+                  <CardContent className="pt-4 pb-4">
+                    <div className="flex items-start justify-between gap-4 mb-2">
                       <div className="flex items-center gap-2">
                         <Badge className="bg-accent/20 text-accent border-accent/30">Announcement</Badge>
                         <span className="text-xs text-muted-foreground">{ann.timestamp}</span>
                       </div>
                     </div>
-                  </CardHeader>
-                  <CardContent>
                     <h3 className="font-semibold text-foreground mb-1">{ann.title}</h3>
                     <p className="text-sm text-muted-foreground">{ann.description}</p>
                   </CardContent>
@@ -293,162 +308,110 @@ export default function Community() {
           </motion.div>
         </TabsContent>
 
-        {/* Community Tab - Discussion Feed */}
+        {/* Community Tab - Chat Rooms */}
         <TabsContent value="community" className="mt-6">
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-            {/* Main Content */}
-            <div className="lg:col-span-3 space-y-6">
-              {/* Create Post Button */}
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="flex justify-end"
-              >
-                <Dialog open={isOpen} onOpenChange={(open) => { setIsOpen(open); if (!open) resetForm(); }}>
-                  <DialogTrigger asChild>
-                    <Button className="gradient-primary text-primary-foreground">
-                      <Plus className="h-4 w-4 mr-2" />
-                      Create Post
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="bg-card border-border">
-                    <DialogHeader>
-                      <DialogTitle className="font-display">Create New Post</DialogTitle>
-                    </DialogHeader>
-                    <form className="space-y-4 mt-4" onSubmit={handleSubmit}>
-                      <div className="space-y-2">
-                        <Label>Post Title</Label>
-                        <Input
-                          placeholder="Enter a title for your post"
-                          className={cn("bg-secondary/50 border-border", errors.title && "border-destructive")}
-                          value={postTitle}
-                          onChange={(e) => setPostTitle(e.target.value)}
-                        />
-                        {errors.title && <p className="text-sm text-destructive">{errors.title}</p>}
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label>Category</Label>
-                        <Select value={postCategory} onValueChange={setPostCategory}>
-                          <SelectTrigger className={cn("bg-secondary/50 border-border", errors.category && "border-destructive")}>
-                            <SelectValue placeholder="Select a category" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {postCategories.map(cat => (
-                              <SelectItem key={cat.value} value={cat.value}>{cat.label}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        {errors.category && <p className="text-sm text-destructive">{errors.category}</p>}
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label>Message</Label>
-                        <Textarea
-                          placeholder="Share your thoughts..."
-                          className={cn("bg-secondary/50 border-border min-h-[120px]", errors.message && "border-destructive")}
-                          value={postMessage}
-                          onChange={(e) => setPostMessage(e.target.value)}
-                        />
-                        {errors.message && <p className="text-sm text-destructive">{errors.message}</p>}
-                      </div>
-
-                      <div className="flex justify-end gap-3 pt-4">
-                        <Button variant="outline" type="button" onClick={() => setIsOpen(false)}>Cancel</Button>
-                        <Button type="submit" className="gradient-primary text-primary-foreground">Post</Button>
-                      </div>
-                    </form>
-                  </DialogContent>
-                </Dialog>
-              </motion.div>
-
-              {/* Discussion Feed */}
-              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
-                <h2 className="font-display text-lg font-semibold text-foreground mb-4">Discussion Feed</h2>
-                <div className="space-y-4">
-                  {filteredPosts.length > 0 ? (
-                    filteredPosts.map((post) => (
-                      <Card key={post.id} className="bg-card border-border">
-                        <CardContent className="pt-4">
-                          <div className="flex items-start gap-3">
-                            <Avatar className="h-10 w-10 border border-border">
-                              <AvatarFallback className="bg-secondary text-foreground text-sm">
-                                {post.userName.split(' ').map(n => n[0]).join('')}
-                              </AvatarFallback>
-                            </Avatar>
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-2 flex-wrap">
-                                <span className="font-semibold text-foreground">{post.userName}</span>
-                                <Badge variant="outline" className={cn("text-xs uppercase", tierColors[post.userTier])}>
-                                  {post.userTier}
-                                </Badge>
-                                <span className="text-xs text-muted-foreground">· {post.timestamp}</span>
-                              </div>
-                              <h4 className="font-medium text-foreground mt-1">{post.title}</h4>
-                              <p className="text-sm text-muted-foreground mt-1 line-clamp-3">{post.content}</p>
-                              <div className="flex items-center gap-4 mt-3">
-                                <button
-                                  onClick={() => handleLike(post.id)}
-                                  className={cn(
-                                    "flex items-center gap-1.5 text-sm transition-colors",
-                                    post.liked ? "text-primary" : "text-muted-foreground hover:text-foreground"
-                                  )}
-                                >
-                                  <ThumbsUp className="h-4 w-4" />
-                                  <span>{post.likes}</span>
-                                </button>
-                                <button
-                                  onClick={() => handleComment(post.id)}
-                                  className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
-                                >
-                                  <MessageCircle className="h-4 w-4" />
-                                  <span>{post.comments}</span>
-                                </button>
-                              </div>
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))
-                  ) : (
-                    <div className="text-center py-12 rounded-xl border border-border bg-card">
-                      <MessageCircle className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                      <h3 className="text-lg font-semibold text-foreground mb-2">No posts yet</h3>
-                      <p className="text-muted-foreground">Be the first to start a discussion!</p>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+          >
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 h-[600px]">
+              {/* Rooms Sidebar */}
+              <div className="lg:col-span-1">
+                <Card className="bg-card border-border h-full">
+                  <CardContent className="p-3">
+                    <div className="flex items-center gap-2 mb-4 px-2 pt-2">
+                      <Hash className="h-4 w-4 text-muted-foreground" />
+                      <h3 className="font-semibold text-foreground text-sm">Community Rooms</h3>
                     </div>
-                  )}
-                </div>
-              </motion.div>
-            </div>
+                    <div className="space-y-1">
+                      {chatRooms.map((room) => (
+                        <button
+                          key={room.id}
+                          onClick={() => setSelectedRoom(room.id)}
+                          className={cn(
+                            "w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-all",
+                            selectedRoom === room.id
+                              ? "bg-primary/20 border border-primary/30"
+                              : "hover:bg-secondary/50"
+                          )}
+                        >
+                          <div className="flex items-center gap-2">
+                            <span className="text-base">{room.icon}</span>
+                            <span className={cn(
+                              "text-sm font-medium",
+                              selectedRoom === room.id ? "text-primary" : "text-foreground"
+                            )}>
+                              {room.name}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                            <span className="text-xs text-muted-foreground">{room.onlineCount}</span>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
 
-            {/* Sidebar Filters */}
-            <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.2 }} className="space-y-4">
-              <Card className="bg-card border-border">
-                <CardHeader className="pb-2">
-                  <h3 className="font-display font-semibold text-foreground flex items-center gap-2">
-                    <Filter className="h-4 w-4 text-primary" />
-                    Categories
-                  </h3>
-                </CardHeader>
-                <CardContent className="space-y-1">
-                  {categories.map((cat) => (
-                    <button
-                      key={cat.value}
-                      onClick={() => setFilter(cat.value)}
-                      className={cn(
-                        "w-full text-left px-3 py-2 rounded-lg text-sm transition-colors",
-                        filter === cat.value
-                          ? "bg-primary/10 text-primary font-medium"
-                          : "text-muted-foreground hover:text-foreground hover:bg-secondary/50"
-                      )}
-                    >
-                      {cat.label}
-                    </button>
-                  ))}
-                </CardContent>
-              </Card>
-            </motion.div>
-          </div>
+              {/* Chat Area */}
+              <div className="lg:col-span-3">
+                <Card className="bg-card border-border h-full flex flex-col">
+                  {/* Chat Header */}
+                  <div className="px-4 py-3 border-b border-border flex items-center gap-2">
+                    <span className="text-lg">{currentRoom?.icon}</span>
+                    <h3 className="font-semibold text-foreground">{currentRoom?.name}</h3>
+                    <div className="flex items-center gap-1 ml-auto">
+                      <div className="w-2 h-2 rounded-full bg-emerald-500" />
+                      <span className="text-xs text-muted-foreground">{currentRoom?.onlineCount} online</span>
+                    </div>
+                  </div>
+
+                  {/* Messages */}
+                  <ScrollArea className="flex-1 px-4">
+                    <div className="py-4 space-y-4">
+                      {roomMessages.map((msg) => (
+                        <div key={msg.id} className="flex items-start gap-3">
+                          <Avatar className="h-9 w-9 border border-border flex-shrink-0">
+                            <AvatarFallback className="bg-secondary text-foreground text-xs">
+                              {msg.userName.split(' ').map(n => n[0]).join('')}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span className="font-semibold text-foreground text-sm">{msg.userName}</span>
+                              <Badge variant="outline" className={cn("text-[10px] uppercase px-1.5 py-0", tierColors[msg.userTier])}>
+                                {msg.userTier}
+                              </Badge>
+                              <span className="text-[10px] text-muted-foreground">{msg.timestamp}</span>
+                            </div>
+                            <p className="text-sm text-foreground/90 mt-0.5">{msg.message}</p>
+                          </div>
+                        </div>
+                      ))}
+                      <div ref={messagesEndRef} />
+                    </div>
+                  </ScrollArea>
+
+                  {/* Message Input */}
+                  <div className="p-4 border-t border-border">
+                    <form onSubmit={handleSendMessage} className="flex gap-2">
+                      <Input
+                        value={newMessage}
+                        onChange={(e) => setNewMessage(e.target.value)}
+                        placeholder={`Message #${currentRoom?.name.toLowerCase().replace(' ', '-')}`}
+                        className="bg-secondary/50 border-border flex-1"
+                      />
+                      <Button type="submit" size="icon" className="gradient-primary text-primary-foreground shrink-0">
+                        <Send className="h-4 w-4" />
+                      </Button>
+                    </form>
+                  </div>
+                </Card>
+              </div>
+            </div>
+          </motion.div>
         </TabsContent>
       </Tabs>
     </div>
