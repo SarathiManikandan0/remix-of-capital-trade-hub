@@ -10,6 +10,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
 import { currentUser } from '@/data/mockData';
+import EmojiPicker from '@/components/chat/EmojiPicker';
+import ImageAttachment, { ImagePreview } from '@/components/chat/ImageAttachment';
 
 interface Announcement {
   id: string;
@@ -25,6 +27,7 @@ interface ChatMessage {
   userName: string;
   userTier: 'free' | 'vip' | 'elite';
   message: string;
+  imageUrl?: string;
   timestamp: string;
 }
 
@@ -177,7 +180,9 @@ export default function Community() {
   const [selectedRoom, setSelectedRoom] = useState('general');
   const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
   const [newMessage, setNewMessage] = useState('');
+  const [selectedImage, setSelectedImage] = useState<{ file: File; preview: string } | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const roomMessages = messages.filter(m => m.roomId === selectedRoom);
   const currentRoom = chatRooms.find(r => r.id === selectedRoom);
@@ -192,7 +197,7 @@ export default function Community() {
 
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newMessage.trim()) return;
+    if (!newMessage.trim() && !selectedImage) return;
 
     const tierMap: Record<string, 'free' | 'vip' | 'elite'> = {
       student: 'free',
@@ -207,11 +212,42 @@ export default function Community() {
       userName: currentUser.name,
       userTier: tierMap[currentUser.tier] || 'free',
       message: newMessage.trim(),
+      imageUrl: selectedImage?.preview,
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
     };
 
     setMessages(prev => [...prev, message]);
     setNewMessage('');
+    setSelectedImage(null);
+  };
+
+  const handleEmojiSelect = (emoji: string) => {
+    const input = inputRef.current;
+    if (input) {
+      const start = input.selectionStart || 0;
+      const end = input.selectionEnd || 0;
+      const newValue = newMessage.slice(0, start) + emoji + newMessage.slice(end);
+      setNewMessage(newValue);
+      // Focus back and set cursor position after emoji
+      setTimeout(() => {
+        input.focus();
+        input.setSelectionRange(start + emoji.length, start + emoji.length);
+      }, 0);
+    } else {
+      setNewMessage(prev => prev + emoji);
+    }
+  };
+
+  const handleImageSelect = (file: File) => {
+    const preview = URL.createObjectURL(file);
+    setSelectedImage({ file, preview });
+  };
+
+  const handleRemoveImage = () => {
+    if (selectedImage) {
+      URL.revokeObjectURL(selectedImage.preview);
+      setSelectedImage(null);
+    }
   };
 
   return (
@@ -386,7 +422,16 @@ export default function Community() {
                               </Badge>
                               <span className="text-[10px] text-muted-foreground">{msg.timestamp}</span>
                             </div>
-                            <p className="text-sm text-foreground/90 mt-0.5">{msg.message}</p>
+                            {msg.message && (
+                              <p className="text-sm text-foreground/90 mt-0.5">{msg.message}</p>
+                            )}
+                            {msg.imageUrl && (
+                              <img 
+                                src={msg.imageUrl} 
+                                alt="Shared image" 
+                                className="mt-2 max-w-xs rounded-lg border border-border"
+                              />
+                            )}
                           </div>
                         </div>
                       ))}
@@ -395,9 +440,26 @@ export default function Community() {
                   </ScrollArea>
 
                   {/* Message Input */}
-                  <div className="p-4 border-t border-border">
-                    <form onSubmit={handleSendMessage} className="flex gap-2">
+                  <div className="p-4 border-t border-border space-y-2">
+                    {selectedImage && (
+                      <div className="pb-2">
+                        <ImagePreview 
+                          preview={selectedImage.preview} 
+                          onRemove={handleRemoveImage} 
+                        />
+                      </div>
+                    )}
+                    <form onSubmit={handleSendMessage} className="flex items-center gap-2">
+                      <div className="flex items-center gap-1">
+                        <EmojiPicker onEmojiSelect={handleEmojiSelect} />
+                        <ImageAttachment 
+                          onImageSelect={handleImageSelect}
+                          selectedImage={selectedImage}
+                          onRemoveImage={handleRemoveImage}
+                        />
+                      </div>
                       <Input
+                        ref={inputRef}
                         value={newMessage}
                         onChange={(e) => setNewMessage(e.target.value)}
                         placeholder={`Message #${currentRoom?.name.toLowerCase().replace(' ', '-')}`}
