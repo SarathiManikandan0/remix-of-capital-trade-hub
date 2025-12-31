@@ -16,6 +16,12 @@ import { SignalCard } from '@/components/signals/SignalCard';
 import { NotificationCard } from '@/components/notifications/NotificationCard';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { currentUser, signals, notifications, tickets } from '@/data/mockData';
 import { format, differenceInDays } from 'date-fns';
 
@@ -58,7 +64,7 @@ export default function Dashboard() {
           
           <div className="flex flex-wrap gap-3">
             <Link to="/subscription">
-              <Button className="gradient-accent text-accent-foreground hover:opacity-90">
+              <Button className="bg-accent/80 text-accent-foreground hover:bg-accent hover:shadow-[0_0_20px_rgba(var(--accent),0.3)] transition-all duration-300">
                 <Zap className="h-4 w-4 mr-2" />
                 Upgrade Plan
               </Button>
@@ -138,7 +144,7 @@ export default function Dashboard() {
             </h2>
             <Link to="/notifications">
               <Button variant="ghost" size="sm" className="text-primary">
-                View All
+                See all notifications
               </Button>
             </Link>
           </div>
@@ -166,30 +172,66 @@ export default function Dashboard() {
       >
         <h2 className="font-display text-lg font-semibold text-foreground mb-4">Quick Actions</h2>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <Link to="/signals" className="block">
-            <div className="p-4 rounded-lg bg-secondary/50 hover:bg-secondary transition-colors text-center group">
-              <Radio className="h-6 w-6 mx-auto mb-2 text-primary group-hover:scale-110 transition-transform" />
-              <p className="text-sm font-medium text-foreground">Live Signals</p>
-            </div>
-          </Link>
-          <Link to="/analysis" className="block">
-            <div className="p-4 rounded-lg bg-secondary/50 hover:bg-secondary transition-colors text-center group">
-              <TrendingUp className="h-6 w-6 mx-auto mb-2 text-success group-hover:scale-110 transition-transform" />
-              <p className="text-sm font-medium text-foreground">Analysis</p>
-            </div>
-          </Link>
-          <Link to="/support" className="block">
-            <div className="p-4 rounded-lg bg-secondary/50 hover:bg-secondary transition-colors text-center group">
-              <Headphones className="h-6 w-6 mx-auto mb-2 text-accent group-hover:scale-110 transition-transform" />
-              <p className="text-sm font-medium text-foreground">Support</p>
-            </div>
-          </Link>
-          <Link to="/subscription" className="block">
-            <div className="p-4 rounded-lg bg-secondary/50 hover:bg-secondary transition-colors text-center group">
-              <Calendar className="h-6 w-6 mx-auto mb-2 text-warning group-hover:scale-110 transition-transform" />
-              <p className="text-sm font-medium text-foreground">Subscription</p>
-            </div>
-          </Link>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Link to="/signals" className="block">
+                  <div className="p-4 rounded-lg bg-secondary/50 hover:bg-secondary transition-colors text-center group">
+                    <Radio className="h-6 w-6 mx-auto mb-2 text-primary group-hover:scale-110 transition-transform" />
+                    <p className="text-sm font-medium text-foreground">Live Signals</p>
+                  </div>
+                </Link>
+              </TooltipTrigger>
+              <TooltipContent className="bg-popover text-popover-foreground border-border">
+                <p className="text-sm">View active trades</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Link to="/analysis" className="block">
+                  <div className="p-4 rounded-lg bg-secondary/50 hover:bg-secondary transition-colors text-center group">
+                    <TrendingUp className="h-6 w-6 mx-auto mb-2 text-success group-hover:scale-110 transition-transform" />
+                    <p className="text-sm font-medium text-foreground">Analysis</p>
+                  </div>
+                </Link>
+              </TooltipTrigger>
+              <TooltipContent className="bg-popover text-popover-foreground border-border">
+                <p className="text-sm">Market insights</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Link to="/support" className="block">
+                  <div className="p-4 rounded-lg bg-secondary/50 hover:bg-secondary transition-colors text-center group">
+                    <Headphones className="h-6 w-6 mx-auto mb-2 text-accent group-hover:scale-110 transition-transform" />
+                    <p className="text-sm font-medium text-foreground">Support</p>
+                  </div>
+                </Link>
+              </TooltipTrigger>
+              <TooltipContent className="bg-popover text-popover-foreground border-border">
+                <p className="text-sm">Raise a support ticket</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Link to="/subscription" className="block">
+                  <div className="p-4 rounded-lg bg-secondary/50 hover:bg-secondary transition-colors text-center group">
+                    <Calendar className="h-6 w-6 mx-auto mb-2 text-warning group-hover:scale-110 transition-transform" />
+                    <p className="text-sm font-medium text-foreground">Subscription</p>
+                  </div>
+                </Link>
+              </TooltipTrigger>
+              <TooltipContent className="bg-popover text-popover-foreground border-border">
+                <p className="text-sm">Upgrade or manage plan</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         </div>
       </motion.div>
     </div>

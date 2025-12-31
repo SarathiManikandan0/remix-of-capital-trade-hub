@@ -6,6 +6,12 @@ import { currentUser } from '@/data/mockData';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 
 interface SignalCardProps {
   signal: Signal;
@@ -45,7 +51,9 @@ export function SignalCard({ signal, index = 0 }: SignalCardProps) {
   const getTimeAgo = (dateString: string) => {
     const diff = Date.now() - new Date(dateString).getTime();
     const hours = Math.floor(diff / 3600000);
-    if (hours < 1) return `${Math.floor(diff / 60000)}m ago`;
+    const minutes = Math.floor(diff / 60000);
+    if (minutes < 1) return 'Just now';
+    if (hours < 1) return `${minutes}m ago`;
     if (hours < 24) return `${hours}h ago`;
     return `${Math.floor(hours / 24)}d ago`;
   };
@@ -58,21 +66,44 @@ export function SignalCard({ signal, index = 0 }: SignalCardProps) {
         transition={{ delay: index * 0.05 }}
         className="relative rounded-xl border border-border bg-card/50 p-5 overflow-hidden"
       >
-        <div className="absolute inset-0 backdrop-blur-sm bg-background/60 flex flex-col items-center justify-center z-10">
-          <Lock className="h-8 w-8 text-muted-foreground mb-2" />
-          <p className="text-sm text-muted-foreground font-medium">
-            {signal.tier.toUpperCase()} Signal
-          </p>
-          <Button size="sm" className="mt-3 gradient-primary text-primary-foreground" onClick={handleUpgradeClick}>
-            Upgrade to Unlock
-          </Button>
-        </div>
-        <div className="opacity-30">
+        {/* Blurred placeholder content */}
+        <div className="opacity-30 blur-[2px] select-none pointer-events-none">
           <div className="flex items-center justify-between mb-4">
             <span className="font-display font-semibold">{signal.pair}</span>
             <Badge variant="outline">Locked</Badge>
           </div>
-          <div className="h-24" />
+          <div className="space-y-2 mb-4">
+            <div className="flex justify-between text-sm">
+              <span className="text-muted-foreground">Entry</span>
+              <span className="font-mono font-medium text-foreground">••••••</span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span className="text-muted-foreground">Stop Loss</span>
+              <span className="font-mono font-medium text-destructive">••••••</span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span className="text-muted-foreground">Targets</span>
+              <span className="font-mono font-medium text-success">••••••</span>
+            </div>
+          </div>
+        </div>
+        
+        {/* Lock overlay */}
+        <div className="absolute inset-0 bg-background/40 flex flex-col items-center justify-center z-10">
+          <Lock className="h-8 w-8 text-muted-foreground mb-2" />
+          <div className="flex items-center gap-2 mb-1">
+            <p className="text-sm text-muted-foreground font-medium">
+              {signal.tier.toUpperCase()} Signal
+            </p>
+            {currentUser.tier === 'beginner' && (
+              <Badge variant="outline" className="bg-warning/10 text-warning border-warning/30 text-xs">
+                Beginner
+              </Badge>
+            )}
+          </div>
+          <Button size="sm" className="mt-3 gradient-primary text-primary-foreground" onClick={handleUpgradeClick}>
+            Upgrade to Unlock
+          </Button>
         </div>
       </motion.div>
     );
@@ -145,9 +176,22 @@ export function SignalCard({ signal, index = 0 }: SignalCardProps) {
 
       {/* Risk Level */}
       <div className="flex items-center justify-between">
-        <Badge variant="outline" className={cn("capitalize border", riskColors[signal.riskLevel])}>
-          {signal.riskLevel} Risk
-        </Badge>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Badge variant="outline" className={cn("capitalize border cursor-help", riskColors[signal.riskLevel])}>
+                {signal.riskLevel} Risk
+              </Badge>
+            </TooltipTrigger>
+            <TooltipContent className="bg-popover text-popover-foreground border-border">
+              <p className="text-sm">
+                {signal.riskLevel === 'low' && 'Conservative risk-reward setup'}
+                {signal.riskLevel === 'medium' && 'Balanced risk-reward setup'}
+                {signal.riskLevel === 'high' && 'Aggressive risk-reward setup'}
+              </p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
         {signal.tier !== 'student' && (
           <Badge variant="outline" className="bg-primary/10 text-primary border-primary/30 uppercase text-xs">
             {signal.tier}

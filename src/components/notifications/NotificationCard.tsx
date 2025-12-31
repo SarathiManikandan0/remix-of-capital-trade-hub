@@ -19,7 +19,7 @@ const typeIcons = {
 };
 
 const typeColors = {
-  signal: 'bg-success/20 text-success',
+  signal: 'bg-success/30 text-success ring-1 ring-success/30',
   subscription: 'bg-warning/20 text-warning',
   support: 'bg-primary/20 text-primary',
   announcement: 'bg-accent/20 text-accent',
@@ -27,6 +27,13 @@ const typeColors = {
 
 export function NotificationCard({ notification, onDismiss, index = 0 }: NotificationCardProps) {
   const Icon = typeIcons[notification.type];
+  
+  // Check if notification is older (more than 1 day old)
+  const isOlder = Date.now() - new Date(notification.createdAt).getTime() > 86400000;
+  
+  // Check if it's a TP hit notification (success type notification mentioning TP)
+  const isTPHit = notification.type === 'signal' && 
+    (notification.title.toLowerCase().includes('tp') || notification.message.toLowerCase().includes('target'));
 
   return (
     <motion.div
@@ -38,7 +45,9 @@ export function NotificationCard({ notification, onDismiss, index = 0 }: Notific
         "flex items-start gap-4 p-4 rounded-xl border transition-colors",
         notification.read
           ? "bg-card/50 border-border"
-          : "bg-primary/5 border-primary/20"
+          : "bg-primary/5 border-primary/20",
+        isOlder && notification.read && "opacity-70",
+        isTPHit && !notification.read && "border-success/30 bg-success/5"
       )}
     >
       <div className={cn("p-2 rounded-lg flex-shrink-0", typeColors[notification.type])}>
