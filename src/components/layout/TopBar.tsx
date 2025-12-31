@@ -11,7 +11,7 @@ import { format } from 'date-fns';
 import { Notification } from '@/types';
 
 const pageTitle: Record<string, string> = {
-  '/': 'Dashboard / Overview',
+  '/': 'Your Dashboard',
   '/signals': 'Live Signals',
   '/analysis': 'Market Analysis',
   '/courses': 'Tools & Courses',

@@ -109,7 +109,10 @@ export function Sidebar() {
                 className="flex-1 min-w-0"
               >
                 <p className="font-semibold text-foreground truncate">{currentUser.name}</p>
-                <div className="flex items-center gap-1">
+                <div 
+                  className="flex items-center gap-1 cursor-pointer hover:opacity-80 transition-opacity"
+                  onClick={handleAvatarClick}
+                >
                   <Crown className={cn("h-3 w-3", tierColors[currentUser.tier])} />
                   <span className={cn("text-xs font-medium capitalize", tierColors[currentUser.tier])}>
                     {currentUser.tier} Member

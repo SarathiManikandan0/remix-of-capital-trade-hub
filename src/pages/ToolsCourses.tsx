@@ -73,92 +73,108 @@ export default function ToolsCourses() {
 
         {/* Courses */}
         <TabsContent value="courses" className="mt-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {courses.map((course, index) => {
-              const isLocked = tierOrder[course.tier] > userTierLevel;
-              const isCompleted = course.progress === 100;
+          <div className="relative">
+            {/* Coming Soon Overlay */}
+            <div className="absolute inset-0 z-10 flex items-center justify-center">
+              <div className="rounded-xl border border-border bg-card/95 backdrop-blur-sm p-8 shadow-2xl text-center max-w-md">
+                <div className="w-16 h-16 rounded-full gradient-primary flex items-center justify-center mx-auto mb-4">
+                  <BookOpen className="h-8 w-8 text-primary-foreground" />
+                </div>
+                <h3 className="font-display text-2xl font-bold text-foreground mb-2">Coming Soon</h3>
+                <p className="text-muted-foreground">Courses will be available shortly. Stay tuned.</p>
+              </div>
+            </div>
+            
+            {/* Blurred Content */}
+            <div className="blur-sm pointer-events-none select-none">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {courses.map((course, index) => {
+                  const isLocked = tierOrder[course.tier] > userTierLevel;
+                  const isCompleted = course.progress === 100;
 
-              return (
-                <motion.div
-                  key={course.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.1 }}
-                  className={cn(
-                    "rounded-xl border bg-card overflow-hidden relative",
-                    isCompleted && "border-success/30"
-                  )}
-                >
-                  {/* Course Image Placeholder */}
-                  <div className="h-32 bg-gradient-to-br from-primary/20 to-secondary flex items-center justify-center">
-                    <BookOpen className="h-10 w-10 text-primary/50" />
-                  </div>
-
-                  <div className="p-5">
-                    <div className="flex items-center gap-2 mb-3">
-                      {course.tier !== 'student' && (
-                        <Badge variant="outline" className="bg-primary/10 text-primary border-primary/30 uppercase text-xs">
-                          {course.tier}
-                        </Badge>
+                  return (
+                    <motion.div
+                      key={course.id}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: index * 0.1 }}
+                      className={cn(
+                        "rounded-xl border bg-card overflow-hidden relative",
+                        isCompleted && "border-success/30"
                       )}
-                      {isCompleted && (
-                        <Badge className="bg-success/20 text-success border-0">
-                          <Award className="h-3 w-3 mr-1" />
-                          Completed
-                        </Badge>
-                      )}
-                    </div>
-
-                    <h3 className="font-display font-semibold text-lg text-foreground mb-2">
-                      {course.title}
-                    </h3>
-                    <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
-                      {course.description}
-                    </p>
-
-                    <div className="flex items-center gap-4 text-sm text-muted-foreground mb-4">
-                      <span className="flex items-center gap-1">
-                        <Clock className="h-4 w-4" /> {course.duration}
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <Layers className="h-4 w-4" /> {course.lessons} lessons
-                      </span>
-                    </div>
-
-                    {!isLocked && (
-                      <div className="mb-4">
-                        <div className="flex items-center justify-between text-sm mb-1">
-                          <span className="text-muted-foreground">Progress</span>
-                          <span className="font-medium text-foreground">{course.progress}%</span>
-                        </div>
-                        <Progress value={course.progress} className="h-2" />
+                    >
+                      {/* Course Image Placeholder */}
+                      <div className="h-32 bg-gradient-to-br from-primary/20 to-secondary flex items-center justify-center">
+                        <BookOpen className="h-10 w-10 text-primary/50" />
                       </div>
-                    )}
 
-                    {isLocked ? (
-                      <Button className="w-full" variant="outline" onClick={handleUpgradeClick}>
-                        <Lock className="h-4 w-4 mr-2" />
-                        Upgrade to Access
-                      </Button>
-                    ) : isCompleted ? (
-                      <Button className="w-full gradient-success text-success-foreground">
-                        <Award className="h-4 w-4 mr-2" />
-                        Get Certificate
-                      </Button>
-                    ) : (
-                      <Button className="w-full gradient-primary text-primary-foreground">
-                        <Play className="h-4 w-4 mr-2" />
-                        {course.progress > 0 ? 'Continue' : 'Start Course'}
-                      </Button>
-                    )}
-                  </div>
+                      <div className="p-5">
+                        <div className="flex items-center gap-2 mb-3">
+                          {course.tier !== 'student' && (
+                            <Badge variant="outline" className="bg-primary/10 text-primary border-primary/30 uppercase text-xs">
+                              {course.tier}
+                            </Badge>
+                          )}
+                          {isCompleted && (
+                            <Badge className="bg-success/20 text-success border-0">
+                              <Award className="h-3 w-3 mr-1" />
+                              Completed
+                            </Badge>
+                          )}
+                        </div>
 
-                  {isLocked && (
-                    <div className="absolute inset-0 backdrop-blur-[2px] bg-background/50" />
-                  )}
-                </motion.div>
-              );
-            })}
+                        <h3 className="font-display font-semibold text-lg text-foreground mb-2">
+                          {course.title}
+                        </h3>
+                        <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
+                          {course.description}
+                        </p>
+
+                        <div className="flex items-center gap-4 text-sm text-muted-foreground mb-4">
+                          <span className="flex items-center gap-1">
+                            <Clock className="h-4 w-4" /> {course.duration}
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <Layers className="h-4 w-4" /> {course.lessons} lessons
+                          </span>
+                        </div>
+
+                        {!isLocked && (
+                          <div className="mb-4">
+                            <div className="flex items-center justify-between text-sm mb-1">
+                              <span className="text-muted-foreground">Progress</span>
+                              <span className="font-medium text-foreground">{course.progress}%</span>
+                            </div>
+                            <Progress value={course.progress} className="h-2" />
+                          </div>
+                        )}
+
+                        {isLocked ? (
+                          <Button className="w-full" variant="outline" onClick={handleUpgradeClick}>
+                            <Lock className="h-4 w-4 mr-2" />
+                            Upgrade to Access
+                          </Button>
+                        ) : isCompleted ? (
+                          <Button className="w-full gradient-success text-success-foreground">
+                            <Award className="h-4 w-4 mr-2" />
+                            Get Certificate
+                          </Button>
+                        ) : (
+                          <Button className="w-full gradient-primary text-primary-foreground">
+                            <Play className="h-4 w-4 mr-2" />
+                            {course.progress > 0 ? 'Continue' : 'Start Course'}
+                          </Button>
+                        )}
+                      </div>
+
+                      {isLocked && (
+                        <div className="absolute inset-0 backdrop-blur-[2px] bg-background/50" />
+                      )}
+                    </motion.div>
+                  );
+                })}
+              </div>
+            </div>
           </div>
         </TabsContent>
 
