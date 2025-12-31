@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion';
+import { Link } from 'react-router-dom';
 import {
   User,
   Mail,
@@ -14,6 +15,11 @@ import {
   LogOut,
   Trash2,
   ChevronRight,
+  BarChart3,
+  Clock,
+  CheckCircle,
+  XCircle,
+  ArrowUpRight,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -23,6 +29,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Slider } from '@/components/ui/slider';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
+import { Checkbox } from '@/components/ui/checkbox';
 import { currentUser } from '@/data/mockData';
 import { cn } from '@/lib/utils';
 
@@ -49,6 +56,9 @@ function SettingSection({ title, icon, children }: SettingSectionProps) {
 }
 
 export default function ProfileSettings() {
+  const isAdvancedUser = currentUser.tier === 'elite' || currentUser.tier === 'beginner' && false; // Only elite/pro for advanced features
+  const isEliteOrPro = currentUser.tier === 'elite';
+
   return (
     <div className="space-y-6 max-w-4xl mx-auto">
       {/* Header */}
@@ -56,6 +66,37 @@ export default function ProfileSettings() {
         <h1 className="font-display text-2xl font-bold text-foreground">Profile & Settings</h1>
         <p className="text-muted-foreground mt-1">Manage your account preferences</p>
       </motion.div>
+
+      {/* Account Status - Read-only */}
+      <SettingSection title="Account Status" icon={<CheckCircle className="h-5 w-5 text-primary" />}>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="p-4 rounded-lg bg-secondary/50 flex items-center justify-between">
+            <div>
+              <p className="text-sm text-muted-foreground">Email</p>
+              <p className="font-medium text-foreground">Verified</p>
+            </div>
+            <CheckCircle className="h-5 w-5 text-green-500" />
+          </div>
+          <div className="p-4 rounded-lg bg-secondary/50 flex items-center justify-between">
+            <div>
+              <p className="text-sm text-muted-foreground">Phone</p>
+              <p className="font-medium text-foreground">{currentUser.phone ? 'Verified' : 'Not verified'}</p>
+            </div>
+            {currentUser.phone ? (
+              <CheckCircle className="h-5 w-5 text-green-500" />
+            ) : (
+              <XCircle className="h-5 w-5 text-muted-foreground" />
+            )}
+          </div>
+          <div className="p-4 rounded-lg bg-secondary/50 flex items-center justify-between">
+            <div>
+              <p className="text-sm text-muted-foreground">KYC</p>
+              <p className="font-medium text-foreground">Not required</p>
+            </div>
+            <Badge variant="outline" className="text-xs">Optional</Badge>
+          </div>
+        </div>
+      </SettingSection>
 
       {/* Personal Info */}
       <SettingSection title="Personal Information" icon={<User className="h-5 w-5 text-primary" />}>
@@ -76,6 +117,86 @@ export default function ProfileSettings() {
           <div className="space-y-2">
             <Label>Phone Number</Label>
             <Input defaultValue={currentUser.phone} className="bg-secondary/50" />
+          </div>
+        </div>
+      </SettingSection>
+
+      {/* Signal Preferences - NEW */}
+      <SettingSection title="Signal Preferences" icon={<BarChart3 className="h-5 w-5 text-primary" />}>
+        <div className="space-y-6">
+          {/* Market Selection */}
+          <div className="space-y-3">
+            <Label>Market Selection</Label>
+            <div className="flex flex-wrap gap-4">
+              <div className="flex items-center space-x-2">
+                <Checkbox id="crypto" defaultChecked />
+                <label htmlFor="crypto" className="text-sm font-medium text-foreground cursor-pointer">
+                  Crypto
+                </label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Checkbox id="forex" defaultChecked />
+                <label htmlFor="forex" className="text-sm font-medium text-foreground cursor-pointer">
+                  Forex
+                </label>
+              </div>
+              <div className="flex items-center space-x-2 opacity-50">
+                <Checkbox id="stocks" disabled />
+                <label htmlFor="stocks" className="text-sm font-medium text-muted-foreground cursor-not-allowed">
+                  Stocks
+                </label>
+                <Badge variant="outline" className="text-xs ml-1">Coming Soon</Badge>
+              </div>
+            </div>
+          </div>
+
+          <Separator className="bg-border" />
+
+          {/* Risk Preference */}
+          <div className="space-y-3">
+            <Label>Risk Preference</Label>
+            <div className="flex gap-3">
+              <Button variant="outline" className="flex-1">Low</Button>
+              <Button variant="default" className="flex-1 gradient-primary text-primary-foreground">Medium</Button>
+            </div>
+          </div>
+
+          <Separator className="bg-border" />
+
+          {/* Notification Method */}
+          <div className="space-y-3">
+            <Label>Notification Method</Label>
+            <div className="flex flex-wrap gap-4">
+              <div className="flex items-center space-x-2">
+                <Checkbox id="inapp" defaultChecked />
+                <label htmlFor="inapp" className="text-sm font-medium text-foreground cursor-pointer">
+                  In-app
+                </label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Checkbox id="email-notify" defaultChecked />
+                <label htmlFor="email-notify" className="text-sm font-medium text-foreground cursor-pointer">
+                  Email
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <Separator className="bg-border" />
+
+          {/* Signal Time Format */}
+          <div className="space-y-2">
+            <Label>Signal Time Display</Label>
+            <Select defaultValue="local">
+              <SelectTrigger className="bg-secondary/50 w-full md:w-64">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="local">Local Time</SelectItem>
+                <SelectItem value="utc">UTC</SelectItem>
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-muted-foreground">Choose how signal timestamps are displayed</p>
           </div>
         </div>
       </SettingSection>
@@ -119,6 +240,9 @@ export default function ProfileSettings() {
                 </Button>
               ))}
             </div>
+            <p className="text-xs text-muted-foreground">
+              Used to personalize signals. Does not guarantee performance.
+            </p>
           </div>
 
           <div className="space-y-2">
@@ -136,12 +260,26 @@ export default function ProfileSettings() {
             </Select>
           </div>
 
+          {/* Max Copy/Auto Loss Limit - Only for Elite/Pro users */}
           <div className="space-y-4">
             <div className="flex justify-between">
-              <Label>Max Copy/Auto Loss Limit (USD)</Label>
-              <span className="text-sm text-muted-foreground">$500</span>
+              <Label className={!isEliteOrPro ? 'text-muted-foreground' : ''}>
+                Max Copy/Auto Loss Limit (USD)
+              </Label>
+              <span className="text-sm text-muted-foreground">
+                {isEliteOrPro ? '$500' : ''}
+              </span>
             </div>
-            <Slider defaultValue={[500]} max={2000} step={50} />
+            {isEliteOrPro ? (
+              <Slider defaultValue={[500]} max={2000} step={50} />
+            ) : (
+              <div className="space-y-2">
+                <Slider defaultValue={[500]} max={2000} step={50} disabled className="opacity-50" />
+                <p className="text-xs text-muted-foreground">
+                  Available for advanced plans only
+                </p>
+              </div>
+            )}
           </div>
         </div>
       </SettingSection>
@@ -195,7 +333,18 @@ export default function ProfileSettings() {
             <p className="font-semibold text-foreground">Dec 31, 2025</p>
           </div>
         </div>
-        <Button variant="outline" className="mt-4">View Billing History</Button>
+        <div className="mt-4 flex flex-wrap items-center gap-4">
+          <Button variant="outline">View Billing History</Button>
+          {currentUser.tier !== 'elite' && (
+            <Link 
+              to="/subscription" 
+              className="text-sm text-primary hover:text-primary/80 transition-colors inline-flex items-center gap-1"
+            >
+              Upgrade to Elite for advanced signals
+              <ArrowUpRight className="h-3 w-3" />
+            </Link>
+          )}
+        </div>
       </SettingSection>
 
       {/* Preferences */}
@@ -241,6 +390,22 @@ export default function ProfileSettings() {
               </SelectContent>
             </Select>
           </div>
+        </div>
+      </SettingSection>
+
+      {/* Support Shortcut */}
+      <SettingSection title="Support" icon={<Headphones className="h-5 w-5 text-primary" />}>
+        <div className="flex items-center justify-between py-2">
+          <div>
+            <p className="font-medium text-foreground">Need help?</p>
+            <p className="text-sm text-muted-foreground">Our support team is here to assist you</p>
+          </div>
+          <Link to="/support">
+            <Button variant="outline" size="sm">
+              Raise a Support Ticket
+              <ChevronRight className="h-4 w-4 ml-1" />
+            </Button>
+          </Link>
         </div>
       </SettingSection>
 
