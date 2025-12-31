@@ -48,7 +48,7 @@ export default function Dashboard() {
             <div className="flex items-center gap-3 mt-4">
               <Badge className="gradient-primary text-primary-foreground border-0 px-3 py-1">
                 <Crown className="h-3 w-3 mr-1" />
-                {currentUser.tier.charAt(0).toUpperCase() + currentUser.tier.slice(1)} Member
+                {currentUser.tier.charAt(0).toUpperCase() + currentUser.tier.slice(1)}
               </Badge>
               <Badge variant="outline" className="border-success/30 text-success">
                 {currentUser.subscriptionStatus === 'active' ? 'Active' : 'Expired'}
