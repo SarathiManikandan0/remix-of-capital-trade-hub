@@ -135,7 +135,7 @@ export default function LiveSignals() {
               className="text-center py-16"
             >
               <Radio className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-              <h3 className="text-lg font-semibold text-foreground mb-2">No signals found</h3>
+              <h3 className="text-lg font-semibold text-foreground mb-2">No data available</h3>
               <p className="text-muted-foreground">Try adjusting your filters or check back later</p>
             </motion.div>
           )}

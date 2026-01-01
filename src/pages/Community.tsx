@@ -344,135 +344,25 @@ export default function Community() {
           </motion.div>
         </TabsContent>
 
-        {/* Community Tab - Chat Rooms */}
+        {/* Community Tab - Coming Soon */}
         <TabsContent value="community" className="mt-6">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
+            className="flex flex-col items-center justify-center py-20"
           >
-            <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 h-[600px]">
-              {/* Rooms Sidebar */}
-              <div className="lg:col-span-1">
-                <Card className="bg-card border-border h-full">
-                  <CardContent className="p-3">
-                    <div className="flex items-center gap-2 mb-4 px-2 pt-2">
-                      <Hash className="h-4 w-4 text-muted-foreground" />
-                      <h3 className="font-semibold text-foreground text-sm">Community Rooms</h3>
-                    </div>
-                    <div className="space-y-1">
-                      {chatRooms.map((room) => (
-                        <button
-                          key={room.id}
-                          onClick={() => setSelectedRoom(room.id)}
-                          className={cn(
-                            "w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-all",
-                            selectedRoom === room.id
-                              ? "bg-primary/20 border border-primary/30"
-                              : "hover:bg-secondary/50"
-                          )}
-                        >
-                          <div className="flex items-center gap-2">
-                            <span className="text-base">{room.icon}</span>
-                            <span className={cn(
-                              "text-sm font-medium",
-                              selectedRoom === room.id ? "text-primary" : "text-foreground"
-                            )}>
-                              {room.name}
-                            </span>
-                          </div>
-                          <div className="flex items-center gap-1">
-                            <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                            <span className="text-xs text-muted-foreground">{room.onlineCount}</span>
-                          </div>
-                        </button>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-
-              {/* Chat Area */}
-              <div className="lg:col-span-3">
-                <Card className="bg-card border-border h-full flex flex-col">
-                  {/* Chat Header */}
-                  <div className="px-4 py-3 border-b border-border flex items-center gap-2">
-                    <span className="text-lg">{currentRoom?.icon}</span>
-                    <h3 className="font-semibold text-foreground">{currentRoom?.name}</h3>
-                    <div className="flex items-center gap-1 ml-auto">
-                      <div className="w-2 h-2 rounded-full bg-emerald-500" />
-                      <span className="text-xs text-muted-foreground">{currentRoom?.onlineCount} online</span>
-                    </div>
-                  </div>
-
-                  {/* Messages */}
-                  <ScrollArea className="flex-1 px-4">
-                    <div className="py-4 space-y-4">
-                      {roomMessages.map((msg) => (
-                        <div key={msg.id} className="flex items-start gap-3">
-                          <Avatar className="h-9 w-9 border border-border flex-shrink-0">
-                            <AvatarFallback className="bg-secondary text-foreground text-xs">
-                              {msg.userName.split(' ').map(n => n[0]).join('')}
-                            </AvatarFallback>
-                          </Avatar>
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2 flex-wrap">
-                              <span className="font-semibold text-foreground text-sm">{msg.userName}</span>
-                              <Badge variant="outline" className={cn("text-[10px] uppercase px-1.5 py-0", tierColors[msg.userTier])}>
-                                {msg.userTier}
-                              </Badge>
-                              <span className="text-[10px] text-muted-foreground">{msg.timestamp}</span>
-                            </div>
-                            {msg.message && (
-                              <p className="text-sm text-foreground/90 mt-0.5">{msg.message}</p>
-                            )}
-                            {msg.imageUrl && (
-                              <img 
-                                src={msg.imageUrl} 
-                                alt="Shared image" 
-                                className="mt-2 max-w-xs rounded-lg border border-border"
-                              />
-                            )}
-                          </div>
-                        </div>
-                      ))}
-                      <div ref={messagesEndRef} />
-                    </div>
-                  </ScrollArea>
-
-                  {/* Message Input */}
-                  <div className="p-4 border-t border-border space-y-2">
-                    {selectedImage && (
-                      <div className="pb-2">
-                        <ImagePreview 
-                          preview={selectedImage.preview} 
-                          onRemove={handleRemoveImage} 
-                        />
-                      </div>
-                    )}
-                    <form onSubmit={handleSendMessage} className="flex items-center gap-2">
-                      <div className="flex items-center gap-1">
-                        <EmojiPicker onEmojiSelect={handleEmojiSelect} />
-                        <ImageAttachment 
-                          onImageSelect={handleImageSelect}
-                          selectedImage={selectedImage}
-                          onRemoveImage={handleRemoveImage}
-                        />
-                      </div>
-                      <Input
-                        ref={inputRef}
-                        value={newMessage}
-                        onChange={(e) => setNewMessage(e.target.value)}
-                        placeholder={`Message #${currentRoom?.name.toLowerCase().replace(' ', '-')}`}
-                        className="bg-secondary/50 border-border flex-1"
-                      />
-                      <Button type="submit" size="icon" className="gradient-primary text-primary-foreground shrink-0">
-                        <Send className="h-4 w-4" />
-                      </Button>
-                    </form>
-                  </div>
-                </Card>
-              </div>
-            </div>
+            <Card className="bg-card border-border max-w-md w-full">
+              <CardContent className="pt-12 pb-12 text-center">
+                <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-6">
+                  <Users className="h-10 w-10 text-primary" />
+                </div>
+                <h2 className="font-display text-2xl font-bold text-foreground mb-3">Community</h2>
+                <p className="text-muted-foreground mb-6">This feature will be available soon</p>
+                <Badge variant="outline" className="bg-accent/10 text-accent border-accent/30 text-sm px-4 py-1 cursor-not-allowed">
+                  Coming Soon
+                </Badge>
+              </CardContent>
+            </Card>
           </motion.div>
         </TabsContent>
       </Tabs>
