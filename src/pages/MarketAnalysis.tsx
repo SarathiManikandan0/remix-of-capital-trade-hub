@@ -81,79 +81,91 @@ export default function MarketAnalysis() {
         </TabsList>
 
         <TabsContent value={activeTab} className="mt-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filterAnalysesByTab(marketAnalyses, activeTab).map((analysis, index) => {
-              const isLocked = tierOrder[analysis.tier] > userTierLevel;
-              const sentiment = sentimentConfig[analysis.sentiment];
-              const SentimentIcon = sentiment.icon;
+          {filterAnalysesByTab(marketAnalyses, activeTab).length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filterAnalysesByTab(marketAnalyses, activeTab).map((analysis, index) => {
+                const isLocked = tierOrder[analysis.tier] > userTierLevel;
+                const sentiment = sentimentConfig[analysis.sentiment];
+                const SentimentIcon = sentiment.icon;
 
-              return (
-                <motion.div
-                  key={analysis.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.1 }}
-                  className={cn(
-                    "rounded-xl border bg-card overflow-hidden group hover:border-primary/30 transition-all",
-                    isLocked && "relative"
-                  )}
-                >
-                  {/* Analysis Image Placeholder */}
-                  <div className="h-40 bg-gradient-to-br from-secondary to-muted flex items-center justify-center">
-                    <BarChart2 className="h-12 w-12 text-muted-foreground/50" />
-                  </div>
+                return (
+                  <motion.div
+                    key={analysis.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.1 }}
+                    className={cn(
+                      "rounded-xl border bg-card overflow-hidden group hover:border-primary/30 transition-all",
+                      isLocked && "relative"
+                    )}
+                  >
+                    {/* Analysis Image Placeholder */}
+                    <div className="h-40 bg-gradient-to-br from-secondary to-muted flex items-center justify-center">
+                      <BarChart2 className="h-12 w-12 text-muted-foreground/50" />
+                    </div>
 
-                  {/* Content */}
-                  <div className="p-5">
-                    <div className="flex items-center gap-2 mb-3">
-                      <Badge className={cn("capitalize", sentiment.bg, sentiment.color)}>
-                        <SentimentIcon className="h-3 w-3 mr-1" />
-                        {analysis.sentiment}
-                      </Badge>
-                      <Badge variant="outline" className="text-xs">{analysis.asset}</Badge>
-                      {analysis.tier !== 'student' && (
-                        <Badge variant="outline" className="bg-primary/10 text-primary border-primary/30 uppercase text-xs">
-                          {analysis.tier}
+                    {/* Content */}
+                    <div className="p-5">
+                      <div className="flex items-center gap-2 mb-3">
+                        <Badge className={cn("capitalize", sentiment.bg, sentiment.color)}>
+                          <SentimentIcon className="h-3 w-3 mr-1" />
+                          {analysis.sentiment}
                         </Badge>
-                      )}
-                    </div>
-
-                    <h3 className="font-display font-semibold text-lg text-foreground mb-2 line-clamp-2">
-                      {analysis.title}
-                    </h3>
-                    <p className="text-sm text-muted-foreground line-clamp-2 mb-4">
-                      {analysis.content}
-                    </p>
-
-                    <div className="flex items-center justify-between text-sm">
-                      <div className="flex items-center gap-4 text-muted-foreground">
-                        <span className="flex items-center gap-1">
-                          <Eye className="h-4 w-4" /> {analysis.views}
-                        </span>
-                        <span>{analysis.engagement}% engagement</span>
+                        <Badge variant="outline" className="text-xs">{analysis.asset}</Badge>
+                        {analysis.tier !== 'student' && (
+                          <Badge variant="outline" className="bg-primary/10 text-primary border-primary/30 uppercase text-xs">
+                            {analysis.tier}
+                          </Badge>
+                        )}
                       </div>
-                      <span className="text-xs text-muted-foreground">
-                        {formatDistanceToNow(new Date(analysis.createdAt), { addSuffix: true })}
-                      </span>
-                    </div>
-                  </div>
 
-                  {/* Locked Overlay */}
-                  {isLocked && (
-                    <div className="absolute inset-0 backdrop-blur-sm bg-background/70 flex flex-col items-center justify-center">
-                      <Lock className="h-8 w-8 text-muted-foreground mb-2" />
-                      <p className="text-sm text-muted-foreground font-medium mb-3">
-                        {analysis.tier.toUpperCase()} Content
+                      <h3 className="font-display font-semibold text-lg text-foreground mb-2 line-clamp-2">
+                        {analysis.title}
+                      </h3>
+                      <p className="text-sm text-muted-foreground line-clamp-2 mb-4">
+                        {analysis.content}
                       </p>
-                      <Button size="sm" className="gradient-primary text-primary-foreground" onClick={handleUpgradeClick}>
-                        Upgrade to Unlock
-                      </Button>
+
+                      <div className="flex items-center justify-between text-sm">
+                        <div className="flex items-center gap-4 text-muted-foreground">
+                          <span className="flex items-center gap-1">
+                            <Eye className="h-4 w-4" /> {analysis.views}
+                          </span>
+                          <span>{analysis.engagement}% engagement</span>
+                        </div>
+                        <span className="text-xs text-muted-foreground">
+                          {formatDistanceToNow(new Date(analysis.createdAt), { addSuffix: true })}
+                        </span>
+                      </div>
                     </div>
-                  )}
-                </motion.div>
-              );
-            })}
-          </div>
+
+                    {/* Locked Overlay */}
+                    {isLocked && (
+                      <div className="absolute inset-0 backdrop-blur-sm bg-background/70 flex flex-col items-center justify-center">
+                        <Lock className="h-8 w-8 text-muted-foreground mb-2" />
+                        <p className="text-sm text-muted-foreground font-medium mb-3">
+                          {analysis.tier.toUpperCase()} Content
+                        </p>
+                        <Button size="sm" className="gradient-primary text-primary-foreground" onClick={handleUpgradeClick}>
+                          Upgrade to Unlock
+                        </Button>
+                      </div>
+                    )}
+                  </motion.div>
+                );
+              })}
+            </div>
+          ) : (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="text-center py-16"
+            >
+              <BarChart2 className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+              <h3 className="text-lg font-semibold text-foreground mb-2">No data available</h3>
+              <p className="text-muted-foreground">Market analyses will appear here when available</p>
+            </motion.div>
+          )}
         </TabsContent>
       </Tabs>
     </div>

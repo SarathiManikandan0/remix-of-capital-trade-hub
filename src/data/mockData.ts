@@ -320,38 +320,5 @@ export const courses: Course[] = [
   },
 ];
 
-export const marketAnalyses: MarketAnalysis[] = [
-  {
-    id: '1',
-    title: 'Tesla: Bullish Momentum Building',
-    asset: 'TSLA',
-    sentiment: 'bullish',
-    content: 'Strong support at $240 with potential breakout above $260...',
-    tier: 'beginner',
-    views: 342,
-    engagement: 89,
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: '2',
-    title: 'Bitcoin Weekly Analysis',
-    asset: 'BTC',
-    sentiment: 'bullish',
-    content: 'BTC holding above key support. Eyes on $45K resistance...',
-    tier: 'student',
-    views: 856,
-    engagement: 94,
-    createdAt: new Date(Date.now() - 3600000).toISOString(),
-  },
-  {
-    id: '3',
-    title: 'EUR/USD: Critical Levels',
-    asset: 'EUR/USD',
-    sentiment: 'bearish',
-    content: 'Euro showing weakness against dollar. Key support at 1.0800...',
-    tier: 'elite',
-    views: 234,
-    engagement: 76,
-    createdAt: new Date(Date.now() - 7200000).toISOString(),
-  },
-];
+// Market analyses - empty for now, will be populated when real data is available
+export const marketAnalyses: MarketAnalysis[] = [];
